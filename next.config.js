@@ -5,13 +5,12 @@ const nextConfig = {
       { protocol: "https", hostname: "images.unsplash.com" }
     ]
   },
-  // ─── KRİTİK EKLEME: API Yönlendirmesi ──────────────────────────────────────
   async rewrites() {
     return [
       {
+        // /api/parse olarak gelen isteği...
         source: '/api/:path*',
-        // Python tarafında /api olmadığı için hedefi doğrudan ana dizine yönlendiriyoruz
-        destination: 'http://127.0.0.1:8000/:path*',
+        destination: 'http://127.0.0.1:8000/api/:path*', 
       },
     ]
   },
