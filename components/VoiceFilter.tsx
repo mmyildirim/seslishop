@@ -29,7 +29,6 @@ export default function VoiceFilter({ onFilterChange, currentFilter }: Props) {
   const [exampleIdx, setExampleIdx] = useState(0);
   const [intentInfo, setIntentInfo] = useState<{ intent: string; confidence: number } | null>(null);
   const recognitionRef = useRef<any>(null);
-  const streamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => setExampleIdx((i) => (i + 1) % EXAMPLE_COMMANDS.length), 3000);
@@ -38,7 +37,10 @@ export default function VoiceFilter({ onFilterChange, currentFilter }: Props) {
 
   useEffect(() => {
     const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRec) setState("no-support");
+    if (!SpeechRec) {
+      setState("no-support");
+      console.warn("Speech Recognition API desteklenmiyor");
+    }
   }, []);
 
   const callModel = useCallback(async (text: string) => {
@@ -56,51 +58,122 @@ export default function VoiceFilter({ onFilterChange, currentFilter }: Props) {
 
   const stopRecording = useCallback(() => {
     recognitionRef.current?.stop();
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t: MediaStreamTrack) => t.stop());
-      streamRef.current = null;
-    }
     setPulse(false);
   }, []);
 
   const startRecording = useCallback(async () => {
-    setErrorMsg(""); setTranscript(""); setIntentInfo(null);
-    setState("recording"); setPulse(true);
+    setErrorMsg(""); 
+    setTranscript(""); 
+    setIntentInfo(null);
+    setState("recording"); 
+    setPulse(true);
+    
     const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRec) { setState("no-support"); return; }
+    if (!SpeechRec) { 
+      setState("no-support");
+      setErrorMsg("Tarayıcınız ses tanımasını desteklemiyor");
+      return; 
+    }
+    
     try {
-      streamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recognition = new SpeechRec();
       recognitionRef.current = recognition;
-      recognition.lang = "tr-TR";
-      recognition.interimResults = true;
-      recognition.maxAlternatives = 3;
+      
+      // Mobil ve masaüstü uyumlu konfigürasyon
       recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+      
+      // Dil ayarı - mobil uyumlu
+      recognition.language = "tr-TR";
+      
+      // Güvenlik için maksimum timeout (konuşma bitiminden sonra)
+      const maxTimeout = 5000; // 5 saniye max
+      let recordingTimeout: NodeJS.Timeout;
+      let isProcessing = false; // Flag - sonuç işleniyormu kontrolü
+      
+      recognition.onstart = () => {
+        console.log("Ses kaydı başladı");
+        isProcessing = false;
+        setPulse(true);
+        // Maksimum timeout başlat - konuşma biterse erken kapanır
+        recordingTimeout = setTimeout(() => {
+          recognition.stop();
+          setPulse(false);
+        }, maxTimeout);
+      };
+      
+      recognition.onspeechend = () => {
+        // Kullanıcı konuşmasını bitirdiğinde hemen durdur
+        console.log("Konuşma sona erdi, kaydı durduruluyor");
+        clearTimeout(recordingTimeout);
+        recognition.stop(); // abort yerine stop() kullan
+      };
+      
       recognition.onresult = (event: any) => {
-        let final = ""; let interim = "";
+        let final = ""; 
+        let interim = "";
         for (let i = event.resultIndex; i < event.results.length; i++) {
-          const t = event.results[i][0].transcript;
-          if (event.results[i].isFinal) final += t; else interim += t;
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) final += transcript; 
+          else interim += transcript;
         }
         const current = final || interim;
         setTranscript(current);
         recognition._lastTranscript = current;
       };
+      
       recognition.onend = () => {
+        clearTimeout(recordingTimeout);
         setPulse(false);
         const text = recognition._lastTranscript || "";
-        if (text.trim()) callModel(text);
-        else { setErrorMsg("Ses algılanamadı."); setState("error"); }
+        if (text.trim()) {
+          callModel(text);
+        } else { 
+          setErrorMsg("Ses algılanamadı. Lütfen daha yüksek sesle konuşun.");
+          setState("error");
+        }
       };
+      
       recognition.onerror = (event: any) => {
+        clearTimeout(recordingTimeout);
         setPulse(false);
-        if (event.error === "not-allowed") setErrorMsg("Mikrofon izni verilmedi.");
-        else if (event.error === "no-speech") setErrorMsg("Ses algılanamadı.");
-        else setErrorMsg(`Hata: ${event.error}`);
+        console.error("Speech Recognition hatası:", event.error);
+        
+        // "aborted" hatasını görmezden gel (normal işlem)
+        if (event.error === "aborted") {
+          console.log("Ses kaydı kullanıcı tarafından durduruldu");
+          return;
+        }
+        
+        // Mobil cihazlarda hata mesajları
+        switch(event.error) {
+          case "not-allowed":
+            setErrorMsg("Mikrofon izni verilmedi. Tarayıcı ayarlarından izin verin.");
+            break;
+          case "no-speech":
+            setErrorMsg("Ses algılanamadı. Lütfen tekrar deneyin.");
+            break;
+          case "network":
+            setErrorMsg("Ağ bağlantısı hatası.");
+            break;
+          case "audio-capture":
+            setErrorMsg("Mikrofon açılamadı. Diğer uygulamaları kapatın.");
+            break;
+          default:
+            setErrorMsg(`Hata: ${event.error}. Tarayıcınızı yenileyin.`);
+        }
         setState("error");
       };
+      
       recognition.start();
-    } catch { setErrorMsg("Mikrofon erişimi reddedildi."); setState("error"); setPulse(false); }
+      console.log("Ses kaydı başlatıldı");
+    } catch (err: any) {
+      console.error("Kayıt hatası:", err);
+      setErrorMsg("Ses kaydı başlatılamadı. HTTPS kullandığınızı kontrol edin.");
+      setState("error");
+      setPulse(false);
+    }
   }, [callModel]);
 
   const clearFilter = () => { onFilterChange(EMPTY_FILTER); setTranscript(""); setIntentInfo(null); setState("idle"); };
