@@ -115,6 +115,8 @@ npm install && npm run dev
 
 
 ```
+Proje şuanda sadece Türkçeyi desteklemektedir,ingilizce dil desteği eklenerek uyarlanabilir.
+
 Bu proje modüler bir yapıdadır. Eğer sistemi geliştirmek isterseniz şu adımları izleyebilirsiniz:
 
 1. **Yeni Bir Etiket (Entity) Eklemek:**
