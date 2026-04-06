@@ -27,7 +27,7 @@ export const EMPTY_FILTER: FilterState = {
   rawText: "",
 };
 
-const API_URL = process.env.NEXT_PUBLIC_NLP_API_URL ?? "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_NLP_API_URL || "http://127.0.0.1:8000/api";
 
 // ─── Model API çağrısı ────────────────────────────────────────────────────────
 

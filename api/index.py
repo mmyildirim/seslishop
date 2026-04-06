@@ -255,7 +255,7 @@ def health():
     }
 
 
-@app.post("/parse", response_model=ParseResponse)
+@app.post("/api/parse", response_model=ParseResponse)
 def parse_voice_command(req: ParseRequest):
     text = req.text.strip()
     if not text:

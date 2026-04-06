@@ -9,10 +9,9 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        // Tarayıcıdan /api ile gelen her şeyi...
         source: '/api/:path*',
-        // ...arka planda 8000 portunda çalışan Python'a gönder.
-        destination: 'http://127.0.0.1:8000/api/:path*',
+        // Python tarafında /api olmadığı için hedefi doğrudan ana dizine yönlendiriyoruz
+        destination: 'http://127.0.0.1:8000/:path*',
       },
     ]
   },
