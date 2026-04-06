@@ -29,6 +29,7 @@ Endpoint:
     }
 """
 
+import os
 import re
 import json
 import logging
@@ -83,7 +84,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", os.environ.get("NEXT_PUBLIC_NLP_API_URL")],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
