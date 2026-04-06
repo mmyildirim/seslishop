@@ -1,0 +1,51 @@
+{
+  "model_version": "1.0.0",
+  "entity_types": [
+    "COLOR",
+    "CATEGORY",
+    "GENDER",
+    "PRICE_MAX",
+    "PRICE_MIN",
+    "RATING",
+    "STOCK"
+  ],
+  "intents": [
+    "FILTER",
+    "RESET",
+    "BROWSE"
+  ],
+  "language": "tr",
+  "train_samples": 80,
+  "description": "Türkçe e-ticaret sesli filtre NER + intent modeli",
+  "color_vocab": [
+    "kırmızı",
+    "siyah",
+    "beyaz",
+    "mavi",
+    "lacivert",
+    "gri",
+    "yeşil",
+    "sarı",
+    "pembe",
+    "mor",
+    "turuncu",
+    "kahve",
+    "bej",
+    "krem",
+    "haki",
+    "bordo",
+    "lila"
+  ],
+  "category_vocab": [
+    "mont",
+    "kazak",
+    "pantolon",
+    "elbise",
+    "ayakkabı",
+    "çanta",
+    "gömlek",
+    "tişört",
+    "etek",
+    "ceket"
+  ]
+}
