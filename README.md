@@ -41,7 +41,7 @@ python -m spacy download tr_core_news_sm   # Türkçe base model
 ### 2. Modeli eğit
 
 ```bash
-python train_model.py
+python api/train_model.py
 ```
 
 Çıktı: `ecommerce_ner/`  `intent_clf.joblib`  `model_info.json`
@@ -49,7 +49,7 @@ python train_model.py
 ### 3. API'yi başlat
 
 ```bash
-python index.py
+python api/index.py
 # http://localhost:8000
 # Swagger: http://localhost:8000/docs
 ```
