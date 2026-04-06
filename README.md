@@ -1,5 +1,8 @@
 # 🎙️ SesliShop — Kendi NLP Modelinle Sesli Filtre
 
+## 🔗 Bağlantılar
+- **Canlı Uygulama:** [https://seslishop.onrender.com/](https://seslishop.onrender.com/)
+- 
 **Mimari:** Web Speech API → kendi eğittiğin spaCy NER + Logistic Regression → FastAPI → Next.js
 
 ---
